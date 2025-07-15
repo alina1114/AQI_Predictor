@@ -20,7 +20,7 @@ jobs:
 
       - name: Install dependencies
         run: |
-          pip install requests pandas hopsworks
+          pip install requests pandas "hopsworks[python]"
 
       - name: Run AQI Collection Script
         run: python 10Pearls2/Daily_Collection.py
