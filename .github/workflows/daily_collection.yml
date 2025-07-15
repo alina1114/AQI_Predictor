@@ -5,6 +5,9 @@ on:
     - cron: "30 13 * * *"  # Runs daily at 6:30 PM PKT (UTC+5)
   workflow_dispatch:        # Allows manual trigger from GitHub
 
+permissions:
+  contents: write
+
 jobs:
   run-script:
     runs-on: ubuntu-latest
@@ -33,5 +36,4 @@ jobs:
           git config --global user.email "github-actions@github.com"
           git add 10Pearls2/karachi_aqi.csv
           git commit -m "Update AQI data for $(date +'%Y-%m-%d')" || echo "No changes to commit"
-          git push https://alina1114:${{ secrets.GH_PAT }}@github.com/alina1114/AQI_Predictor.git HEAD:master
-
+          git push https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/alina1114/AQI_Predictor.git HEAD:master
