@@ -26,3 +26,11 @@ jobs:
         run: python 10Pearls2/Daily_Collection.py
         env:
           HOPSWORKS_API_KEY: ${{ secrets.HOPSWORKS_API_KEY }}
+
+      - name: Commit and Push updated CSV
+        run: |
+          git config --global user.name "github-actions"
+          git config --global user.email "github-actions@github.com"
+          git add 10Pearls2/karachi_aqi.csv
+          git commit -m "Update AQI data for $(date +'%Y-%m-%d')" || echo "No changes to commit"
+          git push
