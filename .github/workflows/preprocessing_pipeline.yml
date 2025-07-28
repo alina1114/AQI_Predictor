@@ -20,11 +20,17 @@ jobs:
 
       - name: Install dependencies
         run: |
-          pip install pandas numpy scikit-learn hopsworks
+          pip install pandas numpy scikit-learn "hopsworks[python]" pyarrow
 
-      - name: Run preprocessing and push
+      - name: Run preprocessing script
+        run: python 10Pearls2/EDA_and_Preprocessing/Data_Preprocessing+Feature_Engineering.py
         env:
           HOPSWORKS_API_KEY: ${{ secrets.HOPSWORKS_API_KEY }}
-        run: |
-          python 10Pearls2/EDA_and_Preprocessing/Data_Preprocessing+Feature_Engineering.py
 
+      - name: Commit and push updated CSV to repo
+        run: |
+          git config --global user.name "github-actions"
+          git config --global user.email "github-actions@github.com"
+          git add preprocessed_aqi_data.csv
+          git diff --quiet && git diff --staged --quiet || git commit -m "Update preprocessed AQI data from GitHub Actions"
+          git push
