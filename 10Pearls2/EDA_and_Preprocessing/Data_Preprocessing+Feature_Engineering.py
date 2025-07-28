@@ -5,7 +5,7 @@ from sklearn.preprocessing import StandardScaler
 import hopsworks
 
 FINAL_CSV = "preprocessed_aqi_data.csv"
-RAW_CSV = os.path.join(os.path.dirname(__file__), "karachi_aqi.csv")
+RAW_CSV = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "karachi_aqi.csv"))
 
 def preprocess_and_engineer(df):
     df = df.copy()
