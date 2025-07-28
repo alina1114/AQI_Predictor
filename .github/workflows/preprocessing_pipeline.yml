@@ -26,4 +26,5 @@ jobs:
         env:
           HOPSWORKS_API_KEY: ${{ secrets.HOPSWORKS_API_KEY }}
         run: |
-          python Data_Preprocessing+Feature_Engineering.py
+          python 10Pearls2/EDA_and_Preprocessing/Data_Preprocessing+Feature_Engineering.py
+
