@@ -26,4 +26,4 @@ jobs:
         env:
           HOPSWORKS_API_KEY: ${{ secrets.HOPSWORKS_API_KEY }}
         run: |
-          python preprocessing_and_push.py
+          python Data_Preprocessing+Feature_Engineering.py
