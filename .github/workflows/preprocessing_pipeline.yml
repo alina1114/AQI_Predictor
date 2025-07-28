@@ -2,8 +2,11 @@ name: Preprocess AQI Data Hourly
 
 on:
   schedule:
-    - cron: "0 * * * *"  # every hour
+    - cron: "0 * * * *"  # Runs every hour
   workflow_dispatch:
+
+permissions:
+  contents: write
 
 jobs:
   preprocess-job:
@@ -32,5 +35,5 @@ jobs:
           git config --global user.name "github-actions"
           git config --global user.email "github-actions@github.com"
           git add preprocessed_aqi_data.csv
-          git diff --quiet && git diff --staged --quiet || git commit -m "Update preprocessed AQI data from GitHub Actions"
-          git push
+          git commit -m "Update preprocessed AQI data for $(date +'%Y-%m-%d %H:%M')" || echo "No changes to commit"
+          git push https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/alina1114/AQI_Predictor.git HEAD:master
