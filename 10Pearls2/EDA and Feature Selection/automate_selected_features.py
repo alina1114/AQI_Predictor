@@ -5,8 +5,10 @@ import hopsworks
 
 # === Paths ===
 BASE_DIR = os.path.dirname(__file__)
-FINAL_CSV = os.path.join(BASE_DIR, "preprocessed_aqi_data.csv")
-SELECTED_CSV = os.path.join(BASE_DIR, "automated_selected_features_for_modeling.csv")
+PARENT_DIR = os.path.dirname(BASE_DIR)
+
+FINAL_CSV = os.path.join(PARENT_DIR, "preprocessed_aqi_data.csv")
+SELECTED_CSV = os.path.join(PARENT_DIR, "automated_selected_features_for_modeling.csv")
 
 # === Load full preprocessed data ===
 if not os.path.exists(FINAL_CSV):
