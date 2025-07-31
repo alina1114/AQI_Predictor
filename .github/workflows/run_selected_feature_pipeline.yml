@@ -22,17 +22,18 @@ jobs:
         run: |
           pip install pandas numpy hopsworks
 
-      - name: ⚙️ Run Selected Features Script
+      - name:  Run Selected Features Script
         env:
           HOPSWORKS_API_KEY: ${{ secrets.HOPSWORKS_API_KEY }}
         run: |
           python "10Pearls2/EDA and Feature Selection/automate_selected_features.py"
 
 
-      - name: Commit Updated Selected Features CSV
+      - name:  Commit Updated Selected Features CSV
         run: |
           git config --global user.name "github-actions"
           git config --global user.email "github-actions@github.com"
-          git add 10Pearls2/automated_selected_features_for_modeling.csv
-          git commit -m "Auto-update: selected features CSV [skip ci]" || echo "No changes to commit"
+          git add "10Pearls2/EDA and Feature Selection/automated_selected_features_for_modeling.csv"
+          git commit -m "Update automated selected features CSV"
           git push
+
