@@ -33,7 +33,7 @@ jobs:
         run: |
           git config --global user.name "github-actions"
           git config --global user.email "github-actions@github.com"
-          git add "10Pearls2/EDA and Feature Selection/automated_selected_features_for_modeling.csv"
+          git add "automated_selected_features_for_modeling.csv"
           git commit -m "Update automated selected features CSV"
           git push
 
