@@ -19,8 +19,11 @@ from sklearn.metrics import mean_absolute_error, mean_squared_error, r2_score
 import joblib
 from statsmodels.tsa.statespace.sarimax import SARIMAX
 
-import hopsworks, hsfs
-import hsfs.engine as _hsfs_engine  # <-- force HSFS engine to Python before login
+# --------- Force HSFS to use Python/Arrow engine BEFORE importing clients ----------
+# (Some 4.2.x stacks only read this at import/connection time.)
+os.environ.setdefault("HSFS_ENGINE", "python")
+
+import hopsworks, hsfs  # import after setting HSFS_ENGINE
 
 warnings.filterwarnings("ignore", "Maximum Likelihood optimization failed to converge")
 warnings.filterwarnings("ignore", category=FutureWarning)
@@ -154,9 +157,8 @@ def main():
     if not API_KEY:
         raise SystemExit("ERROR: HOPSWORKS_API_KEY env var is required.")
 
-    # 1) Force HSFS engine + Login to Hopsworks
+    # 1) Login + feature store
     log("Logging in to Hopsworks…")
-    _hsfs_engine.init("python")  # <<< crucial line to avoid "Couldn't find execution engine"
     project = hopsworks.login(project=PROJECT_NAME, api_key_value=API_KEY)
     fs = project.get_feature_store()
 
@@ -287,7 +289,6 @@ def main():
     # 11) Upsert predictions to Feature Group
     pred_fg = ensure_predictions_fg(fs)
     pred_df = forecast_df.copy()
-    # try strict parse d/m/yy HH:MM; fallback to future_idx
     try:
         pred_df["datetime"] = pd.to_datetime(pred_df["datetime"], format="%d/%m/%y %H:%M", errors="raise")
     except Exception:
