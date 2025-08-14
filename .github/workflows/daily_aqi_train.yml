@@ -3,7 +3,7 @@ name: Daily AQI Training
 on:
   schedule:
     - cron: "15 02 * * *"   # Runs daily at 02:15 UTC
-  workflow_dispatch:         # Allows manual run from GitHub UI
+  workflow_dispatch:        # Allows manual run from GitHub UI
 
 permissions:
   contents: write
@@ -11,77 +11,36 @@ permissions:
 jobs:
   train-and-forecast:
     runs-on: ubuntu-latest
-    timeout-minutes: 60
-
-    env:
-      HOPSWORKS_PROJECT: aqi_predictor1
-      MODEL_REMOTE_DIR: Models/sarimax_aqi/2
-      REMOTE_PRED_BASE: Resources/aqi_predictions
-      AQI_ROOT: .
-      AQI_FG_NAME: aqi_features
-      AQI_FG_VERSION: "1"
-      AQI_PRED_FG_NAME: aqi_predictions
-      AQI_PRED_FG_VERSION: "1"
-      FEATURES_JSON: final_feature_list.json
-      AQI_HORIZON: "72"
-      AQI_TEST_FRAC: "0.20"
-      AQI_TRAIN_WINDOW: "all"
-      HSFS_ENGINE: python    # force HSFS to use the Python/Arrow engine
 
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v3
 
-      - name: Show working dir and list files
-        run: |
-          pwd
-          ls -la
-          ls -la "10Pearls2/Model_Training" || true
-
       - name: Set up Python
         uses: actions/setup-python@v4
         with:
-          python-version: "3.10"
+          python-version: '3.10'
 
       - name: Install Dependencies
         run: |
-          python -m pip install --upgrade pip
-          # Match Hopsworks backend 4.2.x and include Arrow Flight extras for BOTH clients
-          pip install "hopsworks[python]==4.2.6" "hsfs[python]==3.4.*"
-          # Stable scientific stack for statsmodels
+          pip install --upgrade pip
+          # Hopsworks/HSFS clients + Arrow Flight (needed by HSFS)
+          pip install "hopsworks[python]==4.2.*" "hsfs[python]==3.*" pyarrow
+          # Scientific stack compatible with statsmodels
           pip install "numpy<2" "pandas>=1.5,<3" "statsmodels==0.14.2" scikit-learn joblib
-          # Print versions for quick debugging
-          python -c "import sys, numpy, pandas, statsmodels, hopsworks, hsfs; \
-            print('Py:', sys.version); \
-            print('numpy', numpy.__version__); \
-            print('pandas', pandas.__version__); \
-            print('statsmodels', statsmodels.__version__); \
-            print('hopsworks', hopsworks.__version__); \
-            print('hsfs', hsfs.__version__)"
 
-      - name: Verify training script exists
-        run: |
-          test -f "10Pearls2/Model_Training/daily_aqi_train.py" && echo "Found training script." || (echo "Training script missing!" && exit 1)
-
-      - name: Run Daily AQI Training Script
+      - name: Run Daily Training Script
         env:
           HOPSWORKS_API_KEY: ${{ secrets.HOPSWORKS_API_KEY }}
+          HOPSWORKS_PROJECT: aqi_predictor1
+          HSFS_ENGINE: python
         run: |
-          if [ -z "${HOPSWORKS_API_KEY}" ]; then
-            echo "ERROR: HOPSWORKS_API_KEY secret is not set."; exit 1
-          fi
           python "10Pearls2/Model_Training/daily_aqi_train.py" --horizon 72
 
-      - name: Commit Updated Forecast CSV (non-fatal if none)
+      - name: Commit Updated Forecast CSV
         run: |
           git config --global user.name "github-actions"
           git config --global user.email "github-actions@github.com"
-          shopt -s nullglob
-          files=(artifacts/predictions/*.csv)
-          if [ ${#files[@]} -gt 0 ]; then
-            git add "${files[@]}"
-            git commit -m "Update daily AQI forecast CSV"
-            git push "https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}" HEAD:master
-          else
-            echo "No CSVs to commit (training/forecast likely failed earlier)."
-          fi
+          git add artifacts/predictions/*.csv || true
+          git commit -m "Update daily AQI forecast CSV" || echo "No changes to commit"
+          git push https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }} HEAD:master
