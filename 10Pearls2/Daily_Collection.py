@@ -83,7 +83,8 @@ else:
 if not new_rows.empty:
     print("Uploading to Hopsworks...")
     try:
-        project = hopsworks.login(api_key_value="QbEE5yBSJE4QLoLV.J42Eh3dwTWMZzeVSd4h49ywMTqGOnI0baaBynQ1wxbF2JJ8AF0btuAZH6Iyu2FVY")  # Replace with your API Key
+        api_key = os.environ.get("HOPSWORKS_API_KEY")
+        project = hopsworks.login(api_key_value=api_key)
         fs = project.get_feature_store()
         fg = fs.get_or_create_feature_group(
             name="karachi_aqi_hourly",
