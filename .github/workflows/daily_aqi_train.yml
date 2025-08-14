@@ -46,7 +46,7 @@ jobs:
         env:
           HOPSWORKS_API_KEY: ${{ secrets.HOPSWORKS_API_KEY }}
         run: |
-          python daily_aqi_train.py --horizon 72
+          python "10Pearls2/Model_Training/daily_aqi_train.py" --horizon 72
 
       - name: Commit Updated Forecast CSV
         run: |
