@@ -24,16 +24,20 @@ jobs:
       - name: Install Dependencies
         run: |
           pip install --upgrade pip
-          # Hopsworks/HSFS clients + Arrow Flight (needed by HSFS)
-          pip install "hopsworks[python]==4.2.*" "hsfs[python]==3.*" pyarrow
-          # Scientific stack compatible with statsmodels
-          pip install "numpy<2" "pandas>=1.5,<3" "statsmodels==0.14.2" scikit-learn joblib
+          # Install exact versions to avoid compatibility issues
+          pip install hopsworks==3.3.0 hsfs==3.3.0 pyarrow==14.0.1
+          pip install numpy==1.24.4 pandas==2.0.3 statsmodels==0.14.2 scikit-learn==1.3.2 joblib==1.3.2
 
       - name: Run Daily Training Script
         env:
           HOPSWORKS_API_KEY: ${{ secrets.HOPSWORKS_API_KEY }}
           HOPSWORKS_PROJECT: aqi_predictor1
           HSFS_ENGINE: python
+          # Add these additional environment variables
+          HOPSWORKS_HOST: "c.app.hopsworks.ai"
+          HOPSWORKS_PORT: "443"
+          HOPSWORKS_PROJECT_ID: "1238211"  # Add your project ID if known
+          HOPSWORKS_TENANT_DOMAIN: "hopsworks.ai"
         run: |
           python "10Pearls2/Model_Training/daily_aqi_train.py" --horizon 72
 
