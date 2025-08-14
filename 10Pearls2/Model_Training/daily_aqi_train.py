@@ -25,10 +25,15 @@ warnings.filterwarnings("ignore", category=FutureWarning)
 import types
 import hsfs  # import HSFS first
 
-# Some hsfs versions (3.x) used with hopsworks 4.2.* don't expose `hopsworks_udf`.
-# Shim it so hopsworks import doesn't fail.
+# Some hsfs 3.x builds (paired with Hopsworks 4.2.x) don't expose `hopsworks_udf.udf`.
+# Shim a no-op so that `import hopsworks` doesn't crash during its import-time check.
 if not hasattr(hsfs, "hopsworks_udf"):
     hsfs.hopsworks_udf = types.SimpleNamespace()
+
+if not hasattr(hsfs.hopsworks_udf, "udf"):
+    def _noop_udf(*args, **kwargs):
+        raise NotImplementedError("Hopsworks UDFs are not available in this runtime.")
+    hsfs.hopsworks_udf.udf = _noop_udf  # satisfy hopsworks import
 
 import hopsworks  # import AFTER shimming
 
