@@ -40,7 +40,10 @@ jobs:
       - name: Install Dependencies
         run: |
           python -m pip install --upgrade pip
-          pip install hopsworks hsfs statsmodels scikit-learn joblib numpy pandas
+          pip install "hopsworks[python]==4.2.*" \
+                      "hsfs==3.*" \
+                      pyarrow \
+                      statsmodels scikit-learn joblib numpy pandas
 
       - name: Run Daily AQI Training Script
         env:
