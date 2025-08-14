@@ -46,9 +46,20 @@ jobs:
       - name: Install Dependencies
         run: |
           python -m pip install --upgrade pip
-          pip install "hopsworks[python]==4.2.*" "hsfs==3.*" pyarrow
+          # Match your backend 4.2.x and ensure Arrow Flight client is present on BOTH hopsworks & hsfs
+          pip install "hopsworks[python]==4.2.*" "hsfs[python]==3.*"
+          # Stable scientific stack for statsmodels
           pip install "numpy<2" "pandas>=1.5,<3" "statsmodels==0.14.2" scikit-learn joblib
-          python -c "import sys, numpy, pandas, statsmodels; print('Py:', sys.version); print('numpy', numpy.__version__); print('pandas', pandas.__version__); print('statsmodels', statsmodels.__version__)"
+          # Show versions for debugging
+          python - <<'PY'
+import sys, numpy, pandas, statsmodels, hopsworks, hsfs
+print("Py:", sys.version)
+print("numpy", numpy.__version__)
+print("pandas", pandas.__version__)
+print("statsmodels", statsmodels.__version__)
+print("hopsworks", hopsworks.__version__)
+print("hsfs", hsfs.__version__)
+PY
 
       - name: Verify training script exists
         run: |
