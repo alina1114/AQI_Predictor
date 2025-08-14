@@ -17,10 +17,21 @@ from sklearn.preprocessing import StandardScaler
 from sklearn.metrics import mean_absolute_error, mean_squared_error, r2_score
 import joblib
 from statsmodels.tsa.statespace.sarimax import SARIMAX
-import hopsworks, hsfs
 
 warnings.filterwarnings("ignore", "Maximum Likelihood optimization failed to converge")
 warnings.filterwarnings("ignore", category=FutureWarning)
+
+# --- import order matters here ---
+import types
+import hsfs  # import HSFS first
+
+# Some hsfs versions (3.x) used with hopsworks 4.2.* don't expose `hopsworks_udf`.
+# Shim it so hopsworks import doesn't fail.
+if not hasattr(hsfs, "hopsworks_udf"):
+    hsfs.hopsworks_udf = types.SimpleNamespace()
+
+import hopsworks  # import AFTER shimming
+
 
 # ------------------ CONFIG (env-overridable) ------------------
 PROJECT_NAME      = os.environ.get("HOPSWORKS_PROJECT", None)         # optional; defaults by api key
