@@ -1,4 +1,5 @@
-
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
 """
 Daily full-training (refit) for AQI SARIMAX:
 - Logs into Hopsworks and reads Feature Group `aqi_features` v1
@@ -18,29 +19,15 @@ from sklearn.metrics import mean_absolute_error, mean_squared_error, r2_score
 import joblib
 from statsmodels.tsa.statespace.sarimax import SARIMAX
 
+import hopsworks, hsfs
+import hsfs.engine as _hsfs_engine  # <-- force HSFS engine to Python before login
+
 warnings.filterwarnings("ignore", "Maximum Likelihood optimization failed to converge")
 warnings.filterwarnings("ignore", category=FutureWarning)
 
-# --- import order matters here ---
-import types
-import hsfs  # import HSFS first
-
-# Some hsfs 3.x builds (paired with Hopsworks 4.2.x) don't expose `hopsworks_udf.udf`.
-# Shim a no-op so that `import hopsworks` doesn't crash during its import-time check.
-if not hasattr(hsfs, "hopsworks_udf"):
-    hsfs.hopsworks_udf = types.SimpleNamespace()
-
-if not hasattr(hsfs.hopsworks_udf, "udf"):
-    def _noop_udf(*args, **kwargs):
-        raise NotImplementedError("Hopsworks UDFs are not available in this runtime.")
-    hsfs.hopsworks_udf.udf = _noop_udf  # satisfy hopsworks import
-
-import hopsworks  # import AFTER shimming
-
-
 # ------------------ CONFIG (env-overridable) ------------------
 PROJECT_NAME      = os.environ.get("HOPSWORKS_PROJECT", None)         # optional; defaults by api key
-API_KEY           = os.environ.get("HOPSWORKS_API_KEY", "")  
+API_KEY           = os.environ.get("HOPSWORKS_API_KEY", "")
 
 FG_NAME           = os.environ.get("AQI_FG_NAME", "aqi_features")
 FG_VERSION        = int(os.environ.get("AQI_FG_VERSION", "1"))
@@ -167,8 +154,9 @@ def main():
     if not API_KEY:
         raise SystemExit("ERROR: HOPSWORKS_API_KEY env var is required.")
 
-    # 1) Login + feature store
+    # 1) Force HSFS engine + Login to Hopsworks
     log("Logging in to Hopsworks…")
+    _hsfs_engine.init("python")  # <<< crucial line to avoid "Couldn't find execution engine"
     project = hopsworks.login(project=PROJECT_NAME, api_key_value=API_KEY)
     fs = project.get_feature_store()
 
