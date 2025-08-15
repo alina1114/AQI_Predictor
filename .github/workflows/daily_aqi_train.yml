@@ -3,7 +3,7 @@ name: Daily AQI Update
 on:
   schedule:
     - cron: "0 0 * * *"  # Runs every day at midnight UTC
-  workflow_dispatch:      # Allow manual trigger
+  workflow_dispatch:
 
 permissions:
   contents: write   
@@ -27,10 +27,11 @@ jobs:
           pip install --upgrade hopsworks==4.2.7 pandas requests pyarrow scikit-learn statsmodels joblib --no-cache-dir
 
       - name: Run AQI update script
+        working-directory: ./10Pearls2
         env:
           HOPSWORKS_API_KEY: ${{ secrets.HOPSWORKS_API_KEY }}
         run: |
-          python "10Pearls2/Model_Training/daily_aqi_train.py" --horizon 72
+          python "Model_Training/daily_aqi_train.py" --horizon 72
 
       - name: Commit and push changes
         run: |
