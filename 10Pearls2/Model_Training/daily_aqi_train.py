@@ -183,7 +183,17 @@ def main():
 
     # Upload CSV & model to datasets
     ds_api.upload(str(csv_path), f"/{REMOTE_PRED_DIR}/{csv_path.name}", overwrite=True)
-    ds_api.upload(str(MODEL_PKL), f"/{REMOTE_MODEL_DIR}/{MODEL_PKL.name}", overwrite=True)
+
+    # Save model to Hopsworks Model Registry
+    mr = project.get_model_registry()
+    model_meta = mr.sklearn.create_model(
+        name="sarimax_aqi",
+        version=1,  # or use mr.sklearn.get_latest_version("sarimax_aqi") + 1 for auto-increment
+        metrics={"MAE": train_m["MAE"], "RMSE": train_m["RMSE"], "R2": train_m["R2"]},
+        description="SARIMAX model for 72-hour AQI forecasting for Karachi"
+    )
+    model_meta.save(MODEL_DIR)
+    log("Model saved to Hopsworks Model Registry.")
 
     # Ensure datetime column is timezone-aware UTC
     forecast_df["datetime"] = pd.to_datetime(forecast_df["datetime"], utc=True)
