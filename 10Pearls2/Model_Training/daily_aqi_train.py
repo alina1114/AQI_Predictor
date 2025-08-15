@@ -174,8 +174,10 @@ def main():
 
     # ---------------- Hopsworks upload ----------------
     log("Connecting to Hopsworks…")
-    project = hopsworks.login(api_key_value=os.environ["HOPSWORKS_API_KEY"],
-                              project=os.environ["HOPSWORKS_PROJECT"])
+    project = hopsworks.login(
+        api_key_value=os.environ["HOPSWORKS_API_KEY"],
+        project=os.environ["HOPSWORKS_PROJECT"]
+    )
     fs = project.get_feature_store()
     ds_api = project.get_dataset_api()
 
@@ -183,8 +185,10 @@ def main():
     ds_api.upload(str(csv_path), f"/{REMOTE_PRED_DIR}/{csv_path.name}", overwrite=True)
     ds_api.upload(str(MODEL_PKL), f"/{REMOTE_MODEL_DIR}/{MODEL_PKL.name}", overwrite=True)
 
+    # Ensure datetime column is timezone-aware UTC
+    forecast_df["datetime"] = pd.to_datetime(forecast_df["datetime"], utc=True)
+
     # Upsert forecast into feature group
-        # Upsert forecast into feature group
     try:
         pred_fg = fs.get_feature_group(name=PRED_FG_NAME, version=PRED_FG_VERSION)
     except:
@@ -193,7 +197,7 @@ def main():
             name=PRED_FG_NAME,
             version=PRED_FG_VERSION,
             primary_key=["datetime"],
-            event_time="datetime",  # important for time-series data
+            event_time="datetime",  # ✅ important for time-series data
             description="Daily AQI predictions",
             online_enabled=True
         )
@@ -202,7 +206,7 @@ def main():
         raise RuntimeError(f"Failed to get or create feature group {PRED_FG_NAME} v{PRED_FG_VERSION}")
 
     log(f"Inserting {len(forecast_df)} rows into feature group...")
-    pred_fg.insert(forecast_df)
+    pred_fg.insert(forecast_df, write_options={"wait_for_job": True})
 
     log("Daily training run completed.")
 
