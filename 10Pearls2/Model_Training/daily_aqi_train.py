@@ -225,3 +225,5 @@ def main():
     log("Daily training run completed.")
     
 if __name__ == "__main__":
+    main()
+
