@@ -192,7 +192,7 @@ def main():
         metrics={"MAE": train_m["MAE"], "RMSE": train_m["RMSE"], "R2": train_m["R2"]},
         description="SARIMAX model for 72-hour AQI forecasting for Karachi"
     )
-    model_meta.save(MODEL_DIR)
+    model_meta.save(str(MODEL_DIR))
     log("Model saved to Hopsworks Model Registry.")
 
     # Ensure datetime column is timezone-aware UTC
