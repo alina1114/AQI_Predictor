@@ -31,13 +31,7 @@ jobs:
       - name: Run Daily Training Script
         env:
           HOPSWORKS_API_KEY: ${{ secrets.HOPSWORKS_API_KEY }}
-          HOPSWORKS_PROJECT: aqi_predictor1
           HSFS_ENGINE: python
-          # Add these additional environment variables
-          HOPSWORKS_HOST: "c.app.hopsworks.ai"
-          HOPSWORKS_PORT: "443"
-          HOPSWORKS_PROJECT_ID: "1238211"  # Add your project ID if known
-          HOPSWORKS_TENANT_DOMAIN: "hopsworks.ai"
         run: |
           python "10Pearls2/Model_Training/daily_aqi_train.py" --horizon 72
 
