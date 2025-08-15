@@ -52,7 +52,7 @@ FEATURES_JSON     = Path(os.environ.get("FEATURES_JSON", "final_feature_list.jso
 CSV_PATH = Path("preprocessed_aqi_data.csv")
 
 # Hopsworks FG + dataset config
-PRED_FG_NAME = "daily_aqi_predictions"
+PRED_FG_NAME = "karachi_aqi_predictions"  # updated FG name
 PRED_FG_VERSION = 1
 REMOTE_PRED_DIR = "Resources/aqi_predictions"
 REMOTE_MODEL_DIR = "Models/sarimax_aqi"
@@ -188,25 +188,26 @@ def main():
     # Ensure datetime column is timezone-aware UTC
     forecast_df["datetime"] = pd.to_datetime(forecast_df["datetime"], utc=True)
 
-    # Upsert forecast into feature group
-    try:
-        pred_fg = fs.get_feature_group(name=PRED_FG_NAME, version=PRED_FG_VERSION)
-    except:
-        log(f"Feature group {PRED_FG_NAME} v{PRED_FG_VERSION} not found. Creating new one...")
-        pred_fg = fs.create_feature_group(
-            name=PRED_FG_NAME,
-            version=PRED_FG_VERSION,
-            primary_key=["datetime"],
-            event_time="datetime",  # ✅ important for time-series data
-            description="Daily AQI predictions",
-            online_enabled=True
-        )
+    # --- PUSH PREDICTIONS TO HOPSWORKS FEATURE STORE ---
+    if not forecast_df.empty:
+        print("Uploading predictions to Hopsworks...")
+        try:
+            fg = fs.get_or_create_feature_group(
+                name=PRED_FG_NAME,
+                version=PRED_FG_VERSION,
+                primary_key=["datetime"],
+                event_time="datetime",  # important for time-series data
+                description="72-hour AQI forecasts for Karachi",
+                online_enabled=False  # offline store only
+            )
 
-    if pred_fg is None:
-        raise RuntimeError(f"Failed to get or create feature group {PRED_FG_NAME} v{PRED_FG_VERSION}")
+            fg.insert(forecast_df, write_options={"wait_for_job": False})
+            print("Successfully uploaded predictions to Hopsworks Feature Store.")
 
-    log(f"Inserting {len(forecast_df)} rows into feature group...")
-    pred_fg.insert(forecast_df, write_options={"wait_for_job": True})
+        except Exception as e:
+            print("Failed to upload predictions to Feature Store:", e)
+    else:
+        print("No predictions to upload to Feature Store.")
 
     log("Daily training run completed.")
 
