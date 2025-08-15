@@ -30,6 +30,7 @@ jobs:
         working-directory: ./10Pearls2
         env:
           HOPSWORKS_API_KEY: ${{ secrets.HOPSWORKS_API_KEY }}
+          HOPSWORKS_PROJECT: ${{ secrets.HOPSWORKS_PROJECT }}
         run: |
           python "Model_Training/daily_aqi_train.py" --horizon 72
 
