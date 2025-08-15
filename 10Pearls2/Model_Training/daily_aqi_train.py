@@ -223,3 +223,5 @@ def main():
         print("No predictions to upload to Feature Store.")
 
     log("Daily training run completed.")
+    
+if __name__ == "__main__":
