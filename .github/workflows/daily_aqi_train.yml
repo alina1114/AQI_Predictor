@@ -24,13 +24,13 @@ jobs:
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
-          pip install --upgrade hopsworks==4.2.7 pandas requests pyarrow --no-cache-dir
+          pip install --upgrade hopsworks==4.2.7 pandas requests pyarrow scikit-learn statsmodels joblib --no-cache-dir
 
       - name: Run AQI update script
         env:
           HOPSWORKS_API_KEY: ${{ secrets.HOPSWORKS_API_KEY }}
         run: |
-          python "10Pearls2/Model_Training/daily_aqi_train.py" --horizon 72   # Your script that fetches AQI, updates CSV, uploads to Hopsworks
+          python "10Pearls2/Model_Training/daily_aqi_train.py" --horizon 72
 
       - name: Commit and push changes
         run: |
