@@ -1,44 +1,41 @@
-name: Daily AQI Training
+name: Daily AQI Update
 
 on:
   schedule:
-    - cron: "15 02 * * *"   # Runs daily at 02:15 UTC
-  workflow_dispatch:        # Allows manual run from GitHub UI
+    - cron: "0 0 * * *"  # Runs every day at midnight UTC
+  workflow_dispatch:      # Allow manual trigger
 
 permissions:
-  contents: write
+  contents: write   
 
 jobs:
-  train-and-forecast:
+  update-data:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout Repository
-        uses: actions/checkout@v3
+      - name: Checkout repo
+        uses: actions/checkout@v4
 
       - name: Set up Python
-        uses: actions/setup-python@v4
+        uses: actions/setup-python@v5
         with:
-          python-version: '3.10'
+          python-version: "3.10"
 
-      - name: Install Dependencies
+      - name: Install dependencies
         run: |
-          pip install --upgrade pip
-          # Install exact versions to avoid compatibility issues
-          pip install hopsworks==3.3.0 hsfs==3.3.0 pyarrow==14.0.1
-          pip install numpy==1.24.4 pandas==2.0.3 statsmodels==0.14.2 scikit-learn==1.3.2 joblib==1.3.2
+          python -m pip install --upgrade pip
+          pip install hopsworks==4.2.7 pandas requests pyarrow
 
-      - name: Run Daily Training Script
+      - name: Run AQI update script
         env:
           HOPSWORKS_API_KEY: ${{ secrets.HOPSWORKS_API_KEY }}
-          HSFS_ENGINE: python
         run: |
-          python "10Pearls2/Model_Training/daily_aqi_train.py" --horizon 72
+          python "10Pearls2/Model_Training/daily_aqi_train.py" --horizon 72   # Your script that fetches AQI, updates CSV, uploads to Hopsworks
 
-      - name: Commit Updated Forecast CSV
+      - name: Commit and push changes
         run: |
-          git config --global user.name "github-actions"
-          git config --global user.email "github-actions@github.com"
-          git add artifacts/predictions/*.csv || true
-          git commit -m "Update daily AQI forecast CSV" || echo "No changes to commit"
-          git push https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }} HEAD:master
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+          git add .
+          git commit -m "Daily AQI data update [skip ci]" || echo "No changes to commit"
+          git push
