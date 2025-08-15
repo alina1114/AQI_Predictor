@@ -24,7 +24,7 @@ jobs:
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
-          pip install hopsworks==4.2.7 pandas requests pyarrow
+          pip install --upgrade hopsworks==4.2.7 pandas requests pyarrow --no-cache-dir
 
       - name: Run AQI update script
         env:
