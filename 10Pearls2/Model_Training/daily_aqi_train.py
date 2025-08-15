@@ -188,7 +188,7 @@ def main():
     mr = project.get_model_registry()
     model_meta = mr.sklearn.create_model(
         name="sarimax_aqi",
-        version=1,  # or use mr.sklearn.get_latest_version("sarimax_aqi") + 1 for auto-increment
+        version=3,  # or use mr.sklearn.get_latest_version("sarimax_aqi") + 1 for auto-increment
         metrics={"MAE": train_m["MAE"], "RMSE": train_m["RMSE"], "R2": train_m["R2"]},
         description="SARIMAX model for 72-hour AQI forecasting for Karachi"
     )
