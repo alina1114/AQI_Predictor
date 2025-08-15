@@ -184,15 +184,25 @@ def main():
     ds_api.upload(str(MODEL_PKL), f"/{REMOTE_MODEL_DIR}/{MODEL_PKL.name}", overwrite=True)
 
     # Upsert forecast into feature group
+        # Upsert forecast into feature group
     try:
         pred_fg = fs.get_feature_group(name=PRED_FG_NAME, version=PRED_FG_VERSION)
     except:
+        log(f"Feature group {PRED_FG_NAME} v{PRED_FG_VERSION} not found. Creating new one...")
         pred_fg = fs.create_feature_group(
-            name=PRED_FG_NAME, version=PRED_FG_VERSION,
-            primary_key=["datetime"], description="Daily AQI predictions", online_enabled=True
+            name=PRED_FG_NAME,
+            version=PRED_FG_VERSION,
+            primary_key=["datetime"],
+            event_time="datetime",  # important for time-series data
+            description="Daily AQI predictions",
+            online_enabled=True
         )
+
+    if pred_fg is None:
+        raise RuntimeError(f"Failed to get or create feature group {PRED_FG_NAME} v{PRED_FG_VERSION}")
+
+    log(f"Inserting {len(forecast_df)} rows into feature group...")
     pred_fg.insert(forecast_df)
-    log("Uploaded forecast to Hopsworks FG and Datasets.")
 
     log("Daily training run completed.")
 
