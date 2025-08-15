@@ -167,10 +167,7 @@ def main():
     date_tag = dt.datetime.utcnow().strftime("%Y-%m-%d")
     csv_path = PRED_DIR / f"sarimax_predicted_aqi_{date_tag}.csv"
     forecast_df.to_csv(csv_path, index=False)
-    joblib.dump(m_final, MODEL_PKL)
-    joblib.dump(scaler, SCALER_PKL)
     log(f"Saved forecast CSV → {csv_path}")
-    log(f"Saved model → {MODEL_PKL}")
 
     # ---------------- Hopsworks upload ----------------
     log("Connecting to Hopsworks…")
@@ -185,14 +182,20 @@ def main():
     ds_api.upload(str(csv_path), f"/{REMOTE_PRED_DIR}/{csv_path.name}", overwrite=True)
 
     # Save model to Hopsworks Model Registry
-    mr = project.get_model_registry()
-    model_meta = mr.sklearn.create_model(
-        name="sarimax_aqi",
-        version=3,  # or use mr.sklearn.get_latest_version("sarimax_aqi") + 1 for auto-increment
-        metrics={"MAE": train_m["MAE"], "RMSE": train_m["RMSE"], "R2": train_m["R2"]},
-        description="SARIMAX model for 72-hour AQI forecasting for Karachi"
-    )
-    model_meta.save(str(MODEL_DIR))
+    import tempfile
+    with tempfile.TemporaryDirectory() as tmpdir:
+        joblib.dump(m_final, os.path.join(tmpdir, "sarimax_aqi.pkl"))
+        joblib.dump(scaler, os.path.join(tmpdir, "exog_scaler.joblib"))
+
+        mr = project.get_model_registry()
+        model_meta = mr.sklearn.create_model(
+            name="sarimax_aqi",
+            version=3,  # or auto-increment
+            metrics={"MAE": train_m["MAE"], "RMSE": train_m["RMSE"], "R2": train_m["R2"]},
+            description="SARIMAX model for 72-hour AQI forecasting for Karachi"
+        )
+        model_meta.save(tmpdir)
+
     log("Model saved to Hopsworks Model Registry.")
 
     # Ensure datetime column is timezone-aware UTC
@@ -220,6 +223,3 @@ def main():
         print("No predictions to upload to Feature Store.")
 
     log("Daily training run completed.")
-
-if __name__ == "__main__":
-    main()
