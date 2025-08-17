@@ -182,21 +182,34 @@ def main():
     ds_api.upload(str(csv_path), f"/{REMOTE_PRED_DIR}/{csv_path.name}", overwrite=True)
 
     # Save model to Hopsworks Model Registry
+        # Save model to Hopsworks Model Registry
     import tempfile
     with tempfile.TemporaryDirectory() as tmpdir:
         joblib.dump(m_final, os.path.join(tmpdir, "sarimax_aqi.pkl"))
         joblib.dump(scaler, os.path.join(tmpdir, "exog_scaler.joblib"))
 
         mr = project.get_model_registry()
+
+        # --- Auto-increment version ---
+        latest_version = 4
+        try:
+            models = mr.get_models("sarimax_aqi")
+            if models:
+                latest_version = max(m.version for m in models)
+        except Exception:
+            pass  # if no models exist yet, start at version 1
+
+        new_version = latest_version + 1
+
         model_meta = mr.sklearn.create_model(
             name="sarimax_aqi",
-            version=4,  # or auto-increment
+            version=new_version,
             metrics={"MAE": train_m["MAE"], "RMSE": train_m["RMSE"], "R2": train_m["R2"]},
             description="SARIMAX model for 72-hour AQI forecasting for Karachi"
         )
         model_meta.save(tmpdir)
 
-    log("Model saved to Hopsworks Model Registry.")
+    log(f"Model saved to Hopsworks Model Registry (version {new_version}).")
 
     # Ensure datetime column is timezone-aware UTC
     forecast_df["datetime"] = pd.to_datetime(forecast_df["datetime"], utc=True)
