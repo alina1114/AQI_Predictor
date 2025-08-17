@@ -47,7 +47,7 @@ MODEL_PKL  = MODEL_DIR / "sarimax_aqi.pkl"
 SCALER_PKL = MODEL_DIR / "exog_scaler.joblib"
 META_JSON  = MODEL_DIR / "metadata.json"
 
-FEATURES_JSON     = Path(os.environ.get("FEATURES_JSON", "10Pearls2/Feature_Selection2/final_feature_list.json"))
+FEATURES_JSON     = Path(os.environ.get("FEATURES_JSON", "Feature_Selection2/final_feature_list.json"))
 
 CSV_PATH = Path("preprocessed_aqi_data.csv")
 
